@@ -15,7 +15,7 @@ void main() {
   fb = hueRotate(fb, 0.06 + u_tilt * 0.1);
   fb *= 0.975 + u_smile * 0.015; // decay keeps feedback from blowing out
 
-  vec3 live = cam(v_uv).rgb;
+  vec3 live = cam((v_uv - 0.5) / max(u_scale, 0.1) + 0.5).rgb;
   float lum = dot(live, vec3(0.299, 0.587, 0.114));
   // Inject the camera where it is bright; opening the mouth opens the gate.
   float gate = smoothstep(0.75 - u_mouth * 0.45, 0.95, lum);
@@ -25,5 +25,5 @@ void main() {
   col += audioGlow(v_uv) * 0.5;
   col *= 0.9 + u_brow * 0.5;
 
-  outColor = vec4(min(col, vec3(1.0)), 1.0);
+  outColor = vec4(min(col * u_intensity, vec3(1.0)), 1.0);
 }

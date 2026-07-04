@@ -1,0 +1,4 @@
+// name: GLITCH WAVE
+// category: cyber
+// ported from prism-video-synth
+float rand(float n){return fract(sin(n)*43758.5453);}float rand2(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;float t=u_time*u_speed;float gt=floor(t*10.0);float glitch=step(0.9,rand(gt));float gy=floor(uv.y*20.0)/20.0;float offset=(rand(gy+gt)-0.5)*0.1*glitch;vec2 uv2=uv;uv2.x+=offset;vec2 p=uv2*10.0*u_scale;float pattern=sin(p.x+t*2.0)*sin(p.y+t*1.5);vec3 col;col.r=sin((uv2.x+0.01*glitch)*50.0*u_scale+t*3.0)*0.5+0.5;col.g=sin(uv2.x*50.0*u_scale+t*3.0)*0.5+0.5;col.b=sin((uv2.x-0.01*glitch)*50.0*u_scale+t*3.0)*0.5+0.5;col*=pattern*0.5+0.5;col*=0.8+0.2*sin(uv.y*u_res.y*2.0);col=mix(col,1.0-col,step(0.95,rand2(floor(uv*10.0)+gt))*glitch);outColor=vec4(col*u_intensity,1.0);}

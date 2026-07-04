@@ -1,0 +1,4 @@
+// name: COSMIC DUST
+// category: space
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float stars(vec2 uv,float t){vec2 gv=fract(uv)-0.5;vec2 id=floor(uv);float star=0.0;for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){vec2 o=vec2(float(x),float(y));float h=hash(id+o);vec2 p=o+vec2(h,fract(h*34.56))-0.5-gv;star+=smoothstep(0.1*(1.0+0.5*sin(t*(h*5.0+3.0))),0.0,length(p))*h;}return star;}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=uv-0.5;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;vec3 col=vec3(0.02,0.01,0.05);col+=vec3(1.0,0.9,0.8)*stars(p*20.0*u_scale+t*0.02,t)*0.5;col+=vec3(0.8,0.9,1.0)*stars(p*40.0*u_scale-t*0.03,t*1.3)*0.3;col+=vec3(0.3,0.1,0.4)*(sin(p.x*3.0+t*0.1)*sin(p.y*2.0-t*0.15)*0.5+0.5)*0.3;outColor=vec4(col*u_intensity,1.0);}

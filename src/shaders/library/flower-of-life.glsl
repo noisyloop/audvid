@@ -1,0 +1,4 @@
+// name: FLOWER OF LIFE
+// category: sacred
+// ported from prism-video-synth
+float circle(vec2 p,vec2 c,float r){return smoothstep(r+0.008,r-0.008,length(p-c));}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=(uv-0.5)*3.0*u_scale;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;float r=0.5;float v=0.0;vec2 hex[7];hex[0]=vec2(0.0,0.0);hex[1]=vec2(r,0.0);hex[2]=vec2(r*0.5,r*0.866);hex[3]=vec2(-r*0.5,r*0.866);hex[4]=vec2(-r,0.0);hex[5]=vec2(-r*0.5,-r*0.866);hex[6]=vec2(r*0.5,-r*0.866);float ring=0.0;for(int i=0;i<7;i++){float d=length(p-hex[i]);ring+=smoothstep(r+0.015,r-0.015,d)-smoothstep(r-0.015,r-0.04,d);}float hue=ring*0.3+atan(p.y,p.x)/6.28318+t*0.1;vec3 col=(0.5+0.5*cos(hue*6.28318+vec3(0.0,2.09,4.18)))*ring;col+=vec3(0.2,0.05,0.3)*(sin(length(p)*8.0-t*2.0)*0.5+0.5)*(1.0-ring);outColor=vec4(col*u_intensity,1.0);}

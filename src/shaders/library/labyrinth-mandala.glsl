@@ -1,0 +1,4 @@
+// name: LABYRINTH MANDALA
+// category: sacred
+// ported from prism-video-synth
+void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*2.0*u_scale;float r=length(p);float a=atan(p.y,p.x);vec3 col=vec3(0.015,0.005,0.03);float wave=fract(t*0.15)*1.4;for(int i=0;i<8;i++){float fi=float(i);float ri=0.14+fi*0.12;float dir=mod(fi,2.0)<0.5?1.0:-1.0;float ga=a*dir+t*(0.08+fi*0.04);float arc=step(0.1,fract(ga*0.95493+fi*0.37));float wall=smoothstep(0.014,0.004,abs(r-ri))*arc;float hl=exp(-abs(ri-wave)*7.0);col+=(0.5+0.5*cos(6.28318*(fi*0.09+t*0.05+vec3(0.0,0.33,0.67))))*wall*(0.45+hl*1.1);}float spoke=smoothstep(0.008,0.0,abs(mod(a+t*0.05,0.7854)-0.3927)*r)*smoothstep(1.1,0.2,r)*step(0.14,r);col+=vec3(0.8,0.6,1.0)*spoke*0.3;col+=vec3(1.0,0.85,0.6)*exp(-r*9.0)*(0.5+0.5*sin(t*1.3));outColor=vec4(col*u_intensity,1.0);}

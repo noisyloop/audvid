@@ -1,0 +1,4 @@
+// name: FIRE DANCE
+// category: nature
+// ported from prism-video-synth
+float noise(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}float sn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(noise(i),noise(i+vec2(1.0,0.0)),f.x),mix(noise(i+vec2(0.0,1.0)),noise(i+vec2(1.0,1.0)),f.x),f.y);}float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*sn(p);p*=2.0;a*=0.5;}return v;}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=uv*u_scale;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;vec2 q=vec2(fbm(p+t*0.3),fbm(p+1.0));float f=fbm(p+vec2(fbm(p+q+t*0.5),fbm(p+q+2.0))*2.0+t*0.4);f=f*(1.0-uv.y);f=pow(f,1.5)*2.0;vec3 col=mix(vec3(0.1,0.0,0.0),vec3(0.8,0.2,0.0),f);col=mix(col,vec3(1.0,0.6,0.0),f*f);col=mix(col,vec3(1.0,1.0,0.6),pow(f,4.0));col*=smoothstep(0.0,0.3,uv.y)*u_intensity;outColor=vec4(col,1.0);}

@@ -1,0 +1,4 @@
+// name: NEON HIGHWAY
+// category: retro
+// ported from prism-video-synth
+void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=uv-0.5;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;vec3 col=mix(vec3(0.02,0.0,0.08),vec3(0.3,0.0,0.2),uv.y*uv.y);col+=vec3(1.0)*step(0.99,fract(sin(dot(floor(uv*200.0),vec2(12.9898,78.233)))*43758.5453))*(1.0-uv.y*0.5);float horizon=0.4;if(uv.y<horizon){float z=horizon/(horizon-uv.y);float x=p.x*z*u_scale;col=mix(col,vec3(0.05),smoothstep(2.5,2.4,abs(x)));col+=vec3(1.0,1.0,0.0)*smoothstep(0.05,0.0,abs(x))*step(0.5,fract(z*0.5-t*2.0))*0.8*u_intensity;col+=vec3(1.0,0.0,0.5)*smoothstep(0.1,0.0,abs(abs(x)-2.3))*u_intensity;col+=vec3(0.0,1.0,1.0)*smoothstep(0.1,0.0,abs(abs(x)-2.5))*u_intensity;}float sun=smoothstep(0.15,0.1,length(p-vec2(0.0,0.15)));col+=vec3(1.0,0.3,0.5)*sun;col=mix(col,vec3(0.02,0.0,0.08),step(0.5,fract(p.y*30.0))*sun*0.8);outColor=vec4(col,1.0);}

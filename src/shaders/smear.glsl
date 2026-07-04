@@ -7,7 +7,7 @@ void main() {
   float t = u_time;
 
   // Blocky horizontal displacement, gated by bass.
-  float blocks = mix(6.0, 24.0, hash21(vec2(floor(t * 0.5), 3.7)));
+  float blocks = mix(6.0, 24.0, hash21(vec2(floor(t * 0.5), 3.7))) * max(u_scale, 0.1);
   vec2 cell = floor(uv * vec2(blocks, blocks * 1.8));
   float jitter = hash21(cell + floor(t * 8.0));
   float gAmt = smoothstep(0.75, 1.0, jitter) * (u_bass * 0.15 + 0.005);
@@ -33,5 +33,5 @@ void main() {
   col = mix(col, 1.0 - col, step(0.97, sin(t * 9.0) * u_brow));
   col = hueRotate(col, u_tilt * 2.0);
 
-  outColor = vec4(col, 1.0);
+  outColor = vec4(col * u_intensity, 1.0);
 }

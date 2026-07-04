@@ -1,0 +1,4 @@
+// name: AURORA BOREALIS
+// category: nature
+// ported from prism-video-synth
+float noise(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}float sn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(noise(i),noise(i+vec2(1.0,0.0)),f.x),mix(noise(i+vec2(0.0,1.0)),noise(i+vec2(1.0,1.0)),f.x),f.y);}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;float t=u_time*u_speed;vec3 col=vec3(0.0,0.02,0.05);for(float i=0.0;i<5.0;i++){float fi=i/5.0;float y=uv.y+fi*0.2-0.3;float wave=sin(uv.x*3.0*u_scale+t+i)*0.1+sin(uv.x*5.0*u_scale-t*0.7+i*2.0)*0.05+sn(vec2(uv.x*2.0*u_scale+t*0.3,i))*0.1;float aurora=smoothstep(0.0,0.3,y+wave)*smoothstep(0.8,0.3,y+wave)*smoothstep(0.0,0.5,uv.x)*smoothstep(1.0,0.5,uv.x);col+=(0.5+0.5*cos(6.28318*(fi*0.5+vec3(0.3,0.6,0.9)+t*0.1)))*aurora*0.4*u_intensity;}col+=vec3(1.0)*smoothstep(0.97,1.0,noise(uv*200.0))*(1.0-uv.y);outColor=vec4(col,1.0);}

@@ -3,7 +3,7 @@
 // mouth→bloom, smile→trail length, mid→radial hue sweep.
 
 void main() {
-  vec2 st = v_uv - 0.5;
+  vec2 st = (v_uv - 0.5) / max(u_scale, 0.1);
   st.x *= u_res.x / max(u_res.y, 1.0);
 
   float seg = floor(mix(3.0, 11.0, u_pinch));
@@ -28,5 +28,5 @@ void main() {
   vec3 trail = texture(u_prev, pv + 0.5).rgb;
   col = max(col, trail * (0.5 + u_smile * 0.35));
 
-  outColor = vec4(col, 1.0);
+  outColor = vec4(col * u_intensity, 1.0);
 }

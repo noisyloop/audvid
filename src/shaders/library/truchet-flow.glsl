@@ -1,0 +1,4 @@
+// name: TRUCHET FLOW
+// category: tiling
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*5.0*u_scale;vec2 id=floor(p);vec2 f=fract(p);float h=hash(id);float o=step(0.5,fract(h*7.13+floor(t*0.3+h*3.0)*0.5));vec2 c1=o<0.5?vec2(0.0):vec2(1.0,0.0);vec2 c2=o<0.5?vec2(1.0):vec2(0.0,1.0);float d1=abs(length(f-c1)-0.5);float d2=abs(length(f-c2)-0.5);float d=min(d1,d2);vec2 cc=d1<d2?c1:c2;float ang=atan(f.y-cc.y,f.x-cc.x);float chk=mod(id.x+id.y,2.0)<0.5?1.0:-1.0;float flow=0.5+0.5*sin(ang*4.0*chk-t*3.0+h*6.28);float ribbon=smoothstep(0.09,0.06,d);float hue=hash(id+cc)*0.4+t*0.08;vec3 col=(0.5+0.5*cos(6.28318*(hue+vec3(0.0,0.33,0.67))))*ribbon*(0.35+0.75*flow);col+=vec3(1.0)*smoothstep(0.02,0.0,d)*flow*0.4;col+=vec3(0.04,0.01,0.08);outColor=vec4(col*u_intensity,1.0);}

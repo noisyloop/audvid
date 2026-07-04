@@ -1,0 +1,4 @@
+// name: SERPENT SCALES
+// category: psychedelic
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*6.0*u_scale;p.x+=sin(p.y*0.7+t)*0.7;p.y+=sin(p.x*0.4-t*0.6)*0.3;float row=floor(p.y);float px=p.x+mod(row,2.0)*0.5;float cell=floor(px);vec2 f=vec2(fract(px),fract(p.y));float d=length(f-vec2(0.5,0.0));float dome=clamp(1.0-d*1.6,0.0,1.0);float edge=smoothstep(0.04,0.0,abs(d-0.58));float h=hash(vec2(cell,row));float hue=h*0.25+row*0.04+t*0.12;vec3 col=(0.5+0.5*cos(6.28318*(hue+vec3(0.0,0.33,0.67))))*pow(dome,1.5)*1.2;col+=vec3(1.0)*pow(dome,8.0)*0.5;col+=(0.5+0.5*cos(6.28318*(hue+0.5+vec3(0.0,0.33,0.67))))*edge*0.6;outColor=vec4(col*u_intensity,1.0);}

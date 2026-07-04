@@ -1,0 +1,4 @@
+// name: PARTICLE FLOW
+// category: organic
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=uv-0.5;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;vec3 col=vec3(0.01,0.01,0.03);for(float i=0.0;i<80.0;i++){float fi=i/80.0;vec2 sp=vec2(hash(vec2(i,0.0))-0.5,hash(vec2(i,1.0))-0.5)*1.5*u_scale;float flow=t*0.3+fi*10.0;vec2 pos=sp;pos.x+=sin(flow+pos.y*3.0)*0.3;pos.y+=cos(flow+pos.x*2.0)*0.2;pos=mod(pos+0.75,1.5)-0.75;float dist=length(p-pos);float size=0.005+0.003*sin(t*2.0+fi*20.0);float particle=smoothstep(size,0.0,dist);float trail=0.003/(dist+0.01)*smoothstep(0.2,0.0,dist);vec3 pc=0.5+0.5*cos(6.28318*(fi+vec3(0.0,0.33,0.67)+t*0.1));col+=pc*particle*u_intensity+pc*trail*0.1*u_intensity;}outColor=vec4(col,1.0);}

@@ -1,0 +1,4 @@
+// name: LIQUID RAINBOW
+// category: psychedelic
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float sn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<4;i++){v+=a*sn(p);p*=2.1;a*=0.5;}return v;}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*2.0*u_scale;float w=fbm(p*1.5+vec2(t*0.25,t*0.1));float v=sin(p.y*4.0+w*9.0+t)+sin(p.x*3.0-w*7.0-t*0.7);vec3 col=0.5+0.5*cos(v*2.0+w*4.0+t*0.3+vec3(0.0,2.09,4.18));float sheen=pow(0.5+0.5*sin(v*3.0-t*2.0),8.0);col+=vec3(1.0)*sheen*0.5;col*=0.7+0.3*w;outColor=vec4(col*u_intensity,1.0);}

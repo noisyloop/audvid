@@ -1,0 +1,4 @@
+// name: ELECTRIC STORM
+// category: nature
+// ported from prism-video-synth
+float rand(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}float bolt(vec2 uv,float t,float seed){float b=0.0;vec2 p=uv;for(float i=0.0;i<10.0;i++){p.x+=(rand(vec2(i,seed+floor(t*3.0)))-0.5)*0.15;b+=0.01/(abs(p.x)+0.01)*smoothstep(1.0,0.0,abs(p.y-i*0.1));}return b*smoothstep(1.0,0.5,abs(uv.y));}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=(uv-0.5)*u_scale;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;vec3 col=vec3(0.02,0.02,0.08)+vec3(0.1,0.05,0.15)*(sin(p.x*5.0+t*0.2)*sin(p.y*3.0-t*0.1)*0.5+0.5);col+=vec3(0.5,0.5,1.0)*bolt(p+vec2(0.3,0.0),t,1.0)*u_intensity;col+=vec3(0.8,0.6,1.0)*bolt(p-vec2(0.2,0.0),t*1.1,2.0)*u_intensity;col+=vec3(1.0)*bolt(p,t*0.9,3.0)*u_intensity;col+=vec3(0.2,0.2,0.3)*pow(rand(vec2(floor(t*4.0),0.0)),10.0);outColor=vec4(col,1.0);}

@@ -1,11 +1,18 @@
 // Control panel wiring. This module owns the DOM and nothing else — it calls
 // plain handler callbacks and exposes plain setters, so the UI never reaches
-// into inputs/renderer internals (and vice versa).
+// into inputs/renderer/layer internals (and vice versa). Layer state comes in
+// as a view object via setLayers(); the picker modal lives in shaderPicker.js.
+
+const LAYER_SLIDERS = [
+  { key: 'opacity', label: 'Opacity', min: 0, max: 1, step: 0.01 },
+  { key: 'speed', label: 'Speed', min: 0, max: 2, step: 0.01 },
+  { key: 'scale', label: 'Scale', min: 0.1, max: 3, step: 0.01 },
+  { key: 'intensity', label: 'Intensity', min: 0, max: 2, step: 0.01 },
+];
 
 export function initControls(handlers) {
   const $ = (id) => document.getElementById(id);
   const els = {
-    name: $('shaderName'),
     error: $('shaderError'),
     status: $('status'),
     recTime: $('recTime'),
@@ -17,16 +24,55 @@ export function initControls(handlers) {
     res: $('res'),
     mapText: $('mapText'),
     overlay: $('startOverlay'),
+    tabs: $('layerTabs'),
+    shaderName: $('shaderName'),
+    shaderCat: $('shaderCat'),
+    eye: $('layerEye'),
+    kill: $('layerKill'),
+    sliders: $('sliders'),
+    blendRow: $('blendRow'),
+    gain: $('audioGain'),
+    gainVal: $('audioGainVal'),
   };
   const audioButtons = [...document.querySelectorAll('[data-audio]')];
 
-  $('shaderPrev').addEventListener('click', () => handlers.onShaderStep(-1));
-  $('shaderNext').addEventListener('click', () => handlers.onShaderStep(1));
+  // --- layer card ---
+  $('shaderPick').addEventListener('click', () => handlers.onOpenPicker());
+  $('layerDice').addEventListener('click', () => handlers.onLayerDice());
+  els.eye.addEventListener('click', () => handlers.onLayerToggleVisible());
+  els.kill.addEventListener('click', () => handlers.onLayerRemove());
+
+  const sliderInputs = {};
+  for (const s of LAYER_SLIDERS) {
+    const row = document.createElement('div');
+    row.className = 'slider-row';
+    const label = document.createElement('span');
+    label.textContent = s.label;
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.min = s.min;
+    input.max = s.max;
+    input.step = s.step;
+    const out = document.createElement('output');
+    input.addEventListener('input', () => {
+      out.textContent = Number(input.value).toFixed(2);
+      handlers.onLayerParam(s.key, Number(input.value));
+    });
+    row.append(label, input, out);
+    els.sliders.append(row);
+    sliderInputs[s.key] = { input, out };
+  }
+
+  // --- shared controls ---
   $('randomize').addEventListener('click', () => handlers.onRandomize());
   $('photo').addEventListener('click', () => handlers.onPhoto());
   els.record.addEventListener('click', () => handlers.onRecordToggle());
   els.camToggle.addEventListener('click', () => handlers.onCameraToggle());
   els.playPause.addEventListener('click', () => handlers.onPlayPause());
+  els.gain.addEventListener('input', () => {
+    els.gainVal.textContent = Number(els.gain.value).toFixed(2);
+    handlers.onAudioGain(Number(els.gain.value));
+  });
   els.overlay.addEventListener('click', () => {
     els.overlay.hidden = true;
     handlers.onStart();
@@ -52,10 +98,55 @@ export function initControls(handlers) {
   els.res.addEventListener('change', applyFormat);
 
   return {
-    setShaderName: (n) => { els.name.textContent = n; },
+    /**
+     * Re-render the layer strip + card from a plain view:
+     * { tabs: [{name, visible}], selected, canAdd, canRemove,
+     *   current: {shaderName, shaderCat, visible, blend, opacity, speed,
+     *   scale, intensity}, blendModes }
+     */
+    setLayers(view) {
+      els.tabs.replaceChildren(
+        ...view.tabs.map((t, i) => {
+          const b = document.createElement('button');
+          b.textContent = t.name.length > 14 ? t.name.slice(0, 13) + '…' : t.name;
+          b.classList.toggle('sel', i === view.selected);
+          b.classList.toggle('hiddenlayer', !t.visible);
+          b.addEventListener('click', () => handlers.onLayerSelect(i));
+          return b;
+        }),
+      );
+      if (view.canAdd) {
+        const add = document.createElement('button');
+        add.className = 'addlayer';
+        add.textContent = '+ layer';
+        add.addEventListener('click', () => handlers.onLayerAdd());
+        els.tabs.append(add);
+      }
+
+      const c = view.current;
+      els.shaderName.textContent = c.shaderName;
+      els.shaderCat.textContent = c.shaderCat;
+      els.eye.textContent = c.visible ? '👁' : '🙈';
+      els.kill.style.visibility = view.canRemove ? 'visible' : 'hidden';
+      for (const s of LAYER_SLIDERS) {
+        sliderInputs[s.key].input.value = c[s.key];
+        sliderInputs[s.key].out.textContent = Number(c[s.key]).toFixed(2);
+      }
+      els.blendRow.replaceChildren(
+        ...view.blendModes.map((mode) => {
+          const b = document.createElement('button');
+          b.textContent = mode;
+          b.classList.toggle('on', mode === c.blend);
+          b.addEventListener('click', () => handlers.onLayerBlend(mode));
+          return b;
+        }),
+      );
+    },
+
     setError: (msg) => {
       els.error.hidden = !msg;
-      els.error.textContent = msg ? `Shader error (previous shader kept running):\n${msg}` : '';
+      els.error.textContent = msg
+        ? `Shader error (previous shader kept running):\n${msg}` : '';
     },
     setStatus: (msg) => { els.status.textContent = msg; },
     setCamera: (on) => { els.camToggle.classList.toggle('on', on); },

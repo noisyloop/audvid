@@ -30,6 +30,10 @@ export function createAudio() {
   let filePlaying = false;
 
   const bands = { bass: 0, mid: 0, treble: 0, level: 0 };
+  // Master reactivity: multiplies the analyzed bands before they reach the
+  // mapping layer. Live-adjustable (including mid-recording) — it shapes how
+  // hard the visuals ride the music, not the audio that gets recorded.
+  let gain = 1;
 
   function ensureCtx() {
     if (ctx) return;
@@ -129,11 +133,11 @@ export function createAudio() {
       for (let i = i0; i <= i1; i++) sum += bins[i];
       return sum / ((i1 - i0 + 1) * 255);
     };
-    // Gentle per-band gain: FFT magnitudes fall off toward the highs.
-    bands.bass = clamp01(avg(20, 250));
-    bands.mid = clamp01(avg(250, 2000) * 1.2);
-    bands.treble = clamp01(avg(2000, 8000) * 1.6);
-    bands.level = clamp01(avg(20, 8000) * 1.1);
+    // Gentle per-band shaping: FFT magnitudes fall off toward the highs.
+    bands.bass = clamp01(avg(20, 250) * gain);
+    bands.mid = clamp01(avg(250, 2000) * 1.2 * gain);
+    bands.treble = clamp01(avg(2000, 8000) * 1.6 * gain);
+    bands.level = clamp01(avg(20, 8000) * 1.1 * gain);
     return bands;
   }
 
@@ -145,6 +149,8 @@ export function createAudio() {
     getBands,
     getMode: () => mode,
     isPlaying: () => filePlaying,
+    setGain: (g) => { gain = Math.min(4, Math.max(0, g)); },
+    getGain: () => gain,
     /** Stream for the recorder to mux; null when no audio source is active. */
     getRecordStream: () => (mode !== 'none' && recordDest ? recordDest.stream : null),
   };
