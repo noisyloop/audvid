@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0b0f" />
+  <title>audvid</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌀</text></svg>" />
+</head>
+<body>
+  <div id="stage">
+    <canvas id="canvas" width="720" height="1280"></canvas>
+    <button id="startOverlay">
+      <span class="big">▶</span>
+      <span>tap to start camera</span>
+      <span class="small">everything runs on your device — nothing is uploaded</span>
+    </button>
+  </div>
+
+  <div id="shaderError" class="error" hidden></div>
+
+  <div id="panel">
+    <div class="row">
+      <button id="shaderPrev" title="Previous shader">◀</button>
+      <span id="shaderName" class="shader-name"></span>
+      <button id="shaderNext" title="Next shader">▶</button>
+      <button id="randomize" class="wide" title="Random shader + random mappings">🎲 Randomize</button>
+    </div>
+
+    <div class="row">
+      <button id="camToggle" class="toggle">📷 Camera</button>
+      <div class="seg" role="group" aria-label="Audio source">
+        <button data-audio="none" class="on">No audio</button>
+        <button data-audio="mic">🎤 Mic</button>
+        <button data-audio="file">🎵 File</button>
+      </div>
+      <button id="playPause" hidden title="Play / pause track">⏯</button>
+      <input type="file" id="filePick" accept="audio/*" hidden />
+    </div>
+
+    <div class="row">
+      <label>Format
+        <select id="aspect">
+          <option value="9:16" selected>9:16</option>
+          <option value="4:5">4:5</option>
+          <option value="1:1">1:1</option>
+          <option value="16:9">16:9</option>
+        </select>
+      </label>
+      <label>Size
+        <select id="res">
+          <option value="720" selected>720p</option>
+          <option value="1080">1080p</option>
+        </select>
+      </label>
+      <button id="photo" title="Save a JPG snapshot">📸</button>
+      <button id="record" class="record" title="Record / stop"></button>
+      <span id="recTime" class="rec-time"></span>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <details>
+      <summary>Mappings</summary>
+      <pre id="mapText"></pre>
+    </details>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
