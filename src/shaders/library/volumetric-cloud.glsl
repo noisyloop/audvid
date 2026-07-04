@@ -22,4 +22,4 @@ void main(){
     if(alpha>0.95)break;
   }
   col+=vec3(0.02,0.01,0.04)*(1.0-alpha);
-  outColor=vec4(col*u_intensity,1.0);}
+  outColor=vec4(audioPop(col*u_intensity),1.0);}

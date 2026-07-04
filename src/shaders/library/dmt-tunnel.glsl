@@ -18,4 +18,4 @@ void main(){
     col+=(0.5+0.5*cos(hue*6.28318+vec3(0.0,2.09,4.18)))*v/8.0;
   }
   col*=u_intensity*(0.5+0.5/(r+0.1));
-  outColor=vec4(col,1.0);}
+  outColor=vec4(audioPop(col),1.0);}

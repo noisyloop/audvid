@@ -38,6 +38,9 @@ uniform float u_bass;
 uniform float u_mid;
 uniform float u_treble;
 uniform float u_level;
+uniform float u_bassHit;
+uniform float u_midHit;
+uniform float u_trebleHit;
 uniform vec2  u_hand;
 uniform float u_pinch;
 uniform float u_mouth;
@@ -81,6 +84,18 @@ vec3 audioGlow(vec2 uv) {
   vec3 c = 0.5 + 0.5 * cos(6.2831 * (uv.xyx * vec3(0.7, 0.9, 1.1))
                            + vec3(0.0, 2.1, 4.2) + u_time * 0.3);
   return c * (0.05 + u_bass * 0.2 + u_level * 0.1);
+}
+
+// Guaranteed-legible audio response, applied to a shader's final color:
+// sustained level rides brightness, bass/treble onsets flash. The +0.06
+// bias means even a near-black frame visibly pops on the kick. Library
+// shaders route their output through this so switching shaders never
+// lands on one that ignores the music.
+vec3 audioPop(vec3 c) {
+  c *= 1.0 + u_level * 0.35;
+  float hitv = max(u_bassHit, u_trebleHit * 0.6);
+  c += (c + 0.06) * hitv * 0.55;
+  return c;
 }
 `;
 

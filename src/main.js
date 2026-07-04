@@ -63,6 +63,53 @@ const pickerData = () => ({
 
 const shaderKeys = () => listShaders().map((s) => s.key);
 
+// --- sync presets (reaction feel) + persistence --------------------------
+// One choice sets both smoothing stages: the analyser's FFT smoothing and
+// the mapping layer's tau multiplier. They stack — which is exactly why the
+// defaults used to feel laggy — so they're tuned together here.
+const SYNC_PRESETS = {
+  snappy: { smoothing: 0.35, tauScale: 0.3 },
+  balanced: { smoothing: 0.5, tauScale: 1.0 },
+  smooth: { smoothing: 0.7, tauScale: 1.6 },
+};
+const SYNC_LS_KEY = 'audvid.sync.v1';
+
+function loadSyncState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SYNC_LS_KEY) ?? '{}');
+    return {
+      preset: SYNC_PRESETS[s.preset] ? s.preset : 'balanced',
+      gain: typeof s.gain === 'number' ? Math.min(3, Math.max(0, s.gain)) : 1,
+      // null = never toggled → follow the per-source default (mic on, file off)
+      agc: typeof s.agc === 'boolean' ? s.agc : null,
+    };
+  } catch {
+    return { preset: 'balanced', gain: 1, agc: null };
+  }
+}
+
+const syncState = loadSyncState();
+
+function saveSyncState() {
+  try { localStorage.setItem(SYNC_LS_KEY, JSON.stringify(syncState)); } catch { /* private mode */ }
+}
+
+function applySyncPreset(name) {
+  const preset = SYNC_PRESETS[name] ?? SYNC_PRESETS.balanced;
+  audio.setSmoothing(preset.smoothing);
+  mapping.setTauScale(preset.tauScale);
+  syncState.preset = name;
+  saveSyncState();
+  ui.setSyncPreset(name);
+}
+
+// A source switch resets AGC to its per-source default unless the user has
+// explicitly toggled it at some point (then their choice wins everywhere).
+function applyAgcPolicy() {
+  if (syncState.agc !== null) audio.setAutoGain(syncState.agc);
+  ui.setAgc(audio.getAutoGain());
+}
+
 // --- recorder ---------------------------------------------------------------
 const recorder = createRecorder(canvas, {
   getAudioStream: () => audio.getRecordStream(),
@@ -143,7 +190,19 @@ const ui = initControls({
     ui.setMappingText(mapping.describe());
     refreshLayers();
   },
-  onAudioGain: (g) => audio.setGain(g),
+  onAudioGain: (g) => {
+    audio.setGain(g);
+    syncState.gain = g;
+    saveSyncState();
+  },
+  onSyncPreset: (name) => applySyncPreset(name),
+  onAgcToggle: () => {
+    const next = !audio.getAutoGain();
+    audio.setAutoGain(next);
+    syncState.agc = next;
+    saveSyncState();
+    ui.setAgc(next);
+  },
 
   onCameraToggle: () => setCamera(!camera.isOn()),
   onAudioMode: (mode) => setAudioMode(mode),
@@ -224,6 +283,7 @@ async function setAudioMode(mode) {
       audio.stopAll();
       ui.setStatus('Audio off.');
     }
+    applyAgcPolicy();
     ui.setAudioMode(mode);
   } catch (e) {
     ui.setAudioMode(audio.getMode());
@@ -237,6 +297,7 @@ async function loadAudioFile(file) {
   try {
     ui.setStatus(`Decoding ${file.name}…`);
     await audio.useFile(file);
+    applyAgcPolicy();
     ui.setAudioMode('file');
     ui.setPlaying(true);
     ui.setStatus(`Playing ${file.name} (looped).`);
@@ -302,6 +363,10 @@ function frame(now) {
 refreshLayers();
 ui.setMappingText(mapping.describe());
 ui.setAudioMode('none');
+applySyncPreset(syncState.preset);
+audio.setGain(syncState.gain);
+ui.setAudioGainValue(syncState.gain);
+ui.setAgc(false);
 ui.setStatus('Stack layers, dial a look, then hit record. Nothing leaves your device.');
 requestAnimationFrame(frame);
 

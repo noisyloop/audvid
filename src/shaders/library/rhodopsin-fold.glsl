@@ -35,4 +35,4 @@ void main(){
     float hue=length(uv)*0.5+t*0.05;
     col=(0.5+0.5*cos(hue*6.28318+vec3(0.0,2.09,4.18)))*0.05;
   }
-  outColor=vec4(col*u_intensity,1.0);}
+  outColor=vec4(audioPop(col*u_intensity),1.0);}

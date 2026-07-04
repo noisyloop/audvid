@@ -30,4 +30,4 @@ void main(){
     col=(0.5+0.5*cos(hue*6.28318+vec3(0.0,2.09,4.18)))*diff;
     col+=vec3(0.5,0.2,1.0)*pow(1.0-diff,3.0);
   }else{col=vec3(0.02,0.01,0.04);}
-  outColor=vec4(col*u_intensity,1.0);}
+  outColor=vec4(audioPop(col*u_intensity),1.0);}

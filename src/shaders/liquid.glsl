@@ -13,7 +13,8 @@ void main() {
   vec2 uv = v_uv;
   float t = u_time * 0.4;
 
-  float zoom = mix(1.15, 0.65, u_pinch) / max(u_scale, 0.1);
+  // bass onset punches the zoom for a frame-accurate kick
+  float zoom = mix(1.15, 0.65, u_pinch) / max(u_scale, 0.1) * (1.0 - u_bassHit * 0.12);
   uv = (uv - 0.5) * zoom + 0.5;
 
   uv = swirl(uv, u_hand, (u_bass * 2.2 + 0.3) * sin(t * 0.7));
@@ -29,7 +30,7 @@ void main() {
 
   vec3 col = cam(uv + warp).rgb;
 
-  float sh = u_treble * 0.02;
+  float sh = u_treble * 0.02 + u_trebleHit * 0.02;
   col.r = cam(uv + warp + vec2(sh, 0.0)).r;
   col.b = cam(uv + warp - vec2(sh, 0.0)).b;
 

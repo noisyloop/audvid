@@ -35,6 +35,8 @@ export function initControls(handlers) {
     gainVal: $('audioGainVal'),
   };
   const audioButtons = [...document.querySelectorAll('[data-audio]')];
+  const syncButtons = [...document.querySelectorAll('[data-sync]')];
+  const agc = $('agcToggle');
 
   // --- layer card ---
   $('shaderPick').addEventListener('click', () => handlers.onOpenPicker());
@@ -69,6 +71,10 @@ export function initControls(handlers) {
   els.record.addEventListener('click', () => handlers.onRecordToggle());
   els.camToggle.addEventListener('click', () => handlers.onCameraToggle());
   els.playPause.addEventListener('click', () => handlers.onPlayPause());
+  for (const btn of syncButtons) {
+    btn.addEventListener('click', () => handlers.onSyncPreset(btn.dataset.sync));
+  }
+  agc.addEventListener('click', () => handlers.onAgcToggle());
   els.gain.addEventListener('input', () => {
     els.gainVal.textContent = Number(els.gain.value).toFixed(2);
     handlers.onAudioGain(Number(els.gain.value));
@@ -167,6 +173,14 @@ export function initControls(handlers) {
         : `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
     },
     setMappingText: (t) => { els.mapText.textContent = t; },
+    setSyncPreset: (name) => {
+      for (const b of syncButtons) b.classList.toggle('on', b.dataset.sync === name);
+    },
+    setAgc: (on) => { agc.classList.toggle('on', on); },
+    setAudioGainValue: (v) => {
+      els.gain.value = v;
+      els.gainVal.textContent = Number(v).toFixed(2);
+    },
   };
 }
 

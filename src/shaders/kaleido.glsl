@@ -9,7 +9,8 @@ void main() {
   float seg = floor(mix(3.0, 11.0, u_pinch));
   float wedge = 6.2831853 / seg;
   float a = atan(st.y, st.x) + u_time * 0.2 + u_tilt * 1.5;
-  float r = length(st) * (1.0 - u_bass * 0.3) + sin(u_time * 0.5) * 0.02;
+  // sustained bass squeezes the radius; the onset kicks it hard for a beat
+  float r = length(st) * (1.0 - u_bass * 0.3 - u_bassHit * 0.15) + sin(u_time * 0.5) * 0.02;
 
   a = mod(a, wedge);
   a = abs(a - wedge * 0.5);
@@ -19,7 +20,7 @@ void main() {
   col = hueRotate(col, r * 3.0 * u_mid + u_tilt);
 
   float lum = dot(col, vec3(0.299, 0.587, 0.114));
-  col += col * smoothstep(0.55, 1.0, lum) * (u_mouth * 2.0 + u_level * 0.5);
+  col += col * smoothstep(0.55, 1.0, lum) * (u_mouth * 2.0 + u_level * 0.5 + u_trebleHit * 1.2);
   col += audioGlow(uv) * (1.0 - smoothstep(0.0, 0.4, lum));
 
   // Feedback: previous frame, slightly rotated and shrunk → spiral smear.

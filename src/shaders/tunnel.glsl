@@ -6,7 +6,8 @@ void main() {
   vec2 c = u_hand;
   vec2 st = v_uv - c;
 
-  float zoom = 0.965 - u_level * 0.05 - u_bass * 0.02;
+  // the tunnel lurches inward on every kick
+  float zoom = 0.965 - u_level * 0.05 - u_bass * 0.02 - u_bassHit * 0.05;
   float rot = u_tilt * 0.06 + sin(u_time * 0.4) * 0.02 + u_bass * 0.05;
   mat2 m = mat2(cos(rot), -sin(rot), sin(rot), cos(rot));
   vec2 pv = m * st * zoom + c;
@@ -21,7 +22,7 @@ void main() {
   float gate = smoothstep(0.75 - u_mouth * 0.45, 0.95, lum);
 
   vec3 col = max(fb, live * gate);
-  col += live * 0.08; // faint live layer so the screen is never empty
+  col += live * (0.08 + u_bassHit * 0.3); // kick flashes the live cam through
   col += audioGlow(v_uv) * 0.5;
   col *= 0.9 + u_brow * 0.5;
 

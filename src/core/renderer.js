@@ -23,6 +23,7 @@ void main() {
 const SCALAR_UNIFORMS = [
   'u_time', 'u_speed', 'u_scale', 'u_intensity',
   'u_bass', 'u_mid', 'u_treble', 'u_level',
+  'u_bassHit', 'u_midHit', 'u_trebleHit',
   'u_pinch', 'u_mouth', 'u_smile', 'u_brow', 'u_tilt',
 ];
 

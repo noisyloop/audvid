@@ -28,6 +28,17 @@ assembled locally and saved as plain downloads.
   shaders paste straight in.
 - **Live audio reactivity control**: the 🔊 slider scales how hard the
   visuals ride the music (0–3×) and can be ridden live while recording.
+- **Sync presets** (⚡ Snappy / Balanced / Smooth): one tap sets both
+  smoothing stages — the FFT analyser's time constant and the mapping
+  layer's response taus — because they stack. Snappy lands a visual event
+  within a frame or two of the kick. Alongside the smoothed bands the audio
+  engine runs onset detection (`bassHit`/`midHit`/`trebleHit`): a fast
+  attack / slow-reference transient per band, so every shader gets a crisp
+  beat pulse no matter how smooth the sustained bands are. Mic mode is
+  first-class: hotter input gain, a noise floor so hiss reads as silence,
+  and auto-gain (AGC, on by default for mic) so a quiet room drives the
+  visuals as hard as a mastered file. Preset, AGC, and reactivity choices
+  persist in localStorage.
 - **Face/hand tracking** via MediaPipe: jaw, smile, brow, head tilt, hand
   position, pinch — all remappable to any uniform (hit Randomize).
 
@@ -78,14 +89,18 @@ A shader is a fragment *body* (helpers + `void main()` writing `outColor`);
 a shared prelude declares the contract, which every layer receives:
 
 ```
-u_res, u_time, u_bass, u_mid, u_treble, u_level, u_hand (vec2), u_pinch,
-u_mouth, u_smile, u_brow, u_tilt, u_cam (webcam sampler2D),
-u_prev (previous composited frame — feedback), u_camRes,
-u_speed / u_scale / u_intensity (per-layer params; intensity includes opacity)
+u_res, u_time, u_bass, u_mid, u_treble, u_level (sustained bands 0..1),
+u_bassHit, u_midHit, u_trebleHit (beat onsets 0..1 — sharp attack, ~120ms
+release; identity-locked so Randomize never scrambles the beat away),
+u_hand (vec2), u_pinch, u_mouth, u_smile, u_brow, u_tilt,
+u_cam (webcam sampler2D), u_prev (previous composited frame — feedback),
+u_camRes, u_speed / u_scale / u_intensity (per-layer params)
 ```
 
 Helpers available: `cam(uv)` (mirrored, cover-fit webcam), `hueRotate`,
-`hash21`, `audioGlow`. Open the app with `?verify` in the URL to
+`hash21`, `audioGlow`, and `audioPop(color)` — a guaranteed-legible audio
+response (level rides brightness, onsets flash) that every library shader
+routes its final color through, so no shader ever feels dead to the music. Open the app with `?verify` in the URL to
 compile-check every registered shader and log failures to the console.
 
 ## Audio: what works and what can't

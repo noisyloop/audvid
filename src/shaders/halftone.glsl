@@ -7,7 +7,7 @@ float dotChannel(vec2 uv, float angle, float lum, float cell) {
   float s = sin(angle);
   vec2 p = mat2(c, -s, s, c) * uv * cell;
   vec2 f = fract(p) - 0.5;
-  float r = (1.0 - lum) * (0.55 + u_bass * 0.35);
+  float r = (1.0 - lum) * (0.55 + u_bass * 0.35 + u_bassHit * 0.3); // dots swell on the kick
   return smoothstep(r, r - 0.12, length(f));
 }
 
@@ -15,7 +15,7 @@ void main() {
   vec2 uv = v_uv;
   uv.x *= u_res.x / max(u_res.y, 1.0);
   float cell = 60.0 * max(u_scale, 0.1);
-  float jit = u_treble * 0.01;
+  float jit = u_treble * 0.01 + u_trebleHit * 0.01;
   uv += vec2(hash21(uv + u_time), hash21(uv - u_time)) * jit;
 
   float base = u_tilt * 0.6;
