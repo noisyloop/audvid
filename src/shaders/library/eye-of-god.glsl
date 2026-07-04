@@ -1,0 +1,4 @@
+// name: EYE OF GOD
+// category: psychedelic
+// ported from prism-video-synth
+void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*1.4*u_scale;float r=length(p);float a=atan(p.y,p.x);float stri=sin(a*12.0+sin(r*10.0-t*2.0))*0.5+sin(a*7.0-t*0.7)*0.3+sin(a*19.0+r*15.0)*0.2;float pp=0.16+0.04*sin(t*1.3);float iris=smoothstep(pp,pp+0.03,r)*smoothstep(0.58,0.5,r);vec3 col=(0.5+0.5*cos(6.28318*(stri*0.13+r*0.8+t*0.05+vec3(0.0,0.33,0.67))))*iris*(0.55+0.45*stri);col+=vec3(1.0,0.8,0.5)*exp(-abs(r-pp)*40.0)*0.8;col+=vec3(0.9,0.95,1.0)*smoothstep(0.05,0.0,length(p-vec2(0.07,0.09))-0.03)*iris;float rays=pow(abs(sin(a*24.0+t*0.3)),8.0)*smoothstep(0.5,0.9,r)*smoothstep(1.4,0.7,r);col+=(0.5+0.5*cos(6.28318*(a/6.28318+t*0.1+vec3(0.0,0.33,0.67))))*rays*0.5;float blink=pow(abs(sin(t*0.35)),24.0);float lid=smoothstep(0.0,0.06,0.62*(1.0-blink)-abs(uv.y*1.4));col*=lid;outColor=vec4(col*u_intensity,1.0);}

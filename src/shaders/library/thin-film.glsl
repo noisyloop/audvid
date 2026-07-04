@@ -1,0 +1,4 @@
+// name: THIN FILM
+// category: light
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float sn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*sn(p);p*=2.08;a*=0.5;}return v;}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*1.8*u_scale;vec2 q=vec2(fbm(p+vec2(t*0.2,0.0)),fbm(p-vec2(0.0,t*0.17)));float th=fbm(p*1.3+q*1.8+t*0.1);vec3 film=0.5+0.5*cos(th*34.0*vec3(1.0,1.22,1.51)+vec3(0.0,0.8,1.8)+t*0.5);float sweep=pow(0.5+0.5*sin(p.x*1.5+p.y*0.8-t*1.2),5.0);vec3 col=film*(0.45+0.45*th)+vec3(1.0)*sweep*0.35;col*=smoothstep(1.8,0.7,length(uv));outColor=vec4(col*u_intensity,1.0);}

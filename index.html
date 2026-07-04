@@ -20,11 +20,28 @@
   <div id="shaderError" class="error" hidden></div>
 
   <div id="panel">
+    <div class="row" id="layerTabs"></div>
+
+    <div class="layer-card">
+      <div class="row">
+        <button id="shaderPick" class="pick">
+          <span id="shaderCat" class="pick-cat"></span>
+          <span id="shaderName"></span> ▾
+        </button>
+        <button id="layerDice" title="Randomize this layer">🎲</button>
+        <button id="layerEye" title="Show / hide layer">👁</button>
+        <button id="layerKill" title="Remove layer">✕</button>
+      </div>
+      <div id="sliders"></div>
+      <div class="row" id="blendRow"></div>
+    </div>
+
     <div class="row">
-      <button id="shaderPrev" title="Previous shader">◀</button>
-      <span id="shaderName" class="shader-name"></span>
-      <button id="shaderNext" title="Next shader">▶</button>
-      <button id="randomize" class="wide" title="Random shader + random mappings">🎲 Randomize</button>
+      <button id="randomize" class="wide" title="Random shaders + mappings on every layer">🎲 Randomize all</button>
+      <label class="gain">🔊 Reactivity
+        <input type="range" id="audioGain" min="0" max="3" step="0.05" value="1" />
+        <span id="audioGainVal">1.00</span>
+      </label>
     </div>
 
     <div class="row">
@@ -64,6 +81,47 @@
       <summary>Mappings</summary>
       <pre id="mapText"></pre>
     </details>
+  </div>
+
+  <!-- Shader picker (fullscreen modal) -->
+  <div id="picker" class="modal" hidden>
+    <div class="modal-head">
+      <span class="modal-title">Select shader</span>
+      <button id="pickerClose" class="modal-x">✕</button>
+    </div>
+    <div class="row modal-tools">
+      <input type="text" id="pickerSearch" placeholder="Search…" />
+      <button id="customAdd" class="accent">+ Custom</button>
+    </div>
+    <div class="row" id="pickerCats"></div>
+    <div id="pickerList"></div>
+  </div>
+
+  <!-- Custom shader editor -->
+  <div id="customModal" class="modal" hidden>
+    <div class="modal-head">
+      <span class="modal-title">Add custom shader</span>
+      <button id="customClose" class="modal-x">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint">
+        Paste a GLSL fragment body: helpers + <code>void main()</code> writing
+        <code>outColor</code>. The audvid uniforms (<code>u_time, u_res, u_bass,
+        u_mid, u_treble, u_level, u_hand, u_pinch, u_mouth, u_smile, u_brow,
+        u_tilt, u_cam, u_prev, u_speed, u_scale, u_intensity</code>) are
+        pre-declared. Old prism-style shaders (<code>gl_FragColor</code>,
+        <code>u_resolution</code>) are converted automatically. Max 32KB,
+        max 16 shaders — stored only in this browser.
+      </p>
+      <input type="text" id="customName" placeholder="Shader name" maxlength="40" />
+      <textarea id="customSource" spellcheck="false"
+        placeholder="void main() {&#10;  vec3 col = cam(v_uv).rgb;&#10;  col *= 0.5 + 0.5 * sin(u_time + v_uv.xyx * 4.0 + vec3(0, 2, 4));&#10;  outColor = vec4(col * u_intensity, 1.0);&#10;}"></textarea>
+      <div class="row">
+        <label class="filebtn">Load .glsl file<input type="file" id="customFile" accept=".glsl,.frag,.fs,.txt" hidden /></label>
+        <button id="customSave" class="accent wide">Compile &amp; save</button>
+      </div>
+      <div id="customError" class="inline-error" hidden></div>
+    </div>
   </div>
 
   <script type="module" src="/src/main.js"></script>

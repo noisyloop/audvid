@@ -1,0 +1,4 @@
+// name: MORPHING BLOBS
+// category: organic
+// ported from prism-video-synth
+float meta(vec2 p,vec2 c,float r){return r/dot(p-c,p-c);}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;vec2 p=(uv-0.5)*2.0*u_scale;p.x*=u_res.x/u_res.y;float t=u_time*u_speed;float m=meta(p,vec2(sin(t)*0.5,cos(t*1.3)*0.5),0.15)+meta(p,vec2(sin(t*0.7+1.0)*0.6,cos(t*0.9)*0.4),0.12)+meta(p,vec2(sin(t*1.2+2.0)*0.4,cos(t*0.8+1.0)*0.6),0.1)+meta(p,vec2(cos(t*0.9)*0.5,sin(t*1.1+3.0)*0.5),0.13)+meta(p,vec2(0.0),0.08+0.03*sin(t*2.0));float edge=smoothstep(0.95,1.05,m);float inner=smoothstep(1.0,3.0,m);vec3 col=mix(vec3(0.05,0.0,0.1),vec3(0.8,0.2,0.5),edge);col=mix(col,vec3(1.0,0.6,0.8),inner);col+=vec3(1.0,0.9,0.95)*smoothstep(3.0,5.0,m)+vec3(0.3,0.1,0.4)*smoothstep(0.5,1.0,m)*(1.0-edge);outColor=vec4(col*u_intensity,1.0);}

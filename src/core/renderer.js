@@ -1,14 +1,16 @@
-// WebGL2 fullscreen-quad fragment-shader runner.
+// WebGL2 fullscreen-quad fragment-shader runner with layered compositing.
 //
-// The renderer knows nothing about inputs or the uniform contract's meaning —
-// it takes a flat bag of {name: number | [x, y]} uniforms per frame, plus an
-// optional HTMLVideoElement for the camera texture. A shader compile error
-// leaves the previous program running and is returned to the caller so the
-// UI can surface it without killing the render loop.
+// The renderer knows nothing about inputs or layers-as-a-concept — callers
+// compile() fragment sources into program handles, then hand draw() an
+// ordered list of passes: { program, uniforms, blend }. Uniforms are a flat
+// bag of {name: number | [x, y]}; the camera video (if any) is uploaded once
+// per frame and shared by every pass. A compile error is returned to the
+// caller so the UI can surface it without killing the render loop.
 //
-// It also maintains a "previous frame" texture (u_prev): after every draw the
-// backbuffer is copied into it, which is what lets shaders do cheap feedback
-// (trails, tunnels) without a ping-pong FBO setup.
+// It also maintains a "previous frame" texture (u_prev): after all passes
+// composite, the backbuffer is copied into it, which is what lets shaders do
+// cheap feedback (trails, tunnels) — feeding on the *whole* composite, so
+// feedback shaders smear the layers below them too.
 
 const VERT_SRC = `#version 300 es
 layout(location = 0) in vec2 a_pos;
@@ -19,9 +21,12 @@ void main() {
 }`;
 
 const SCALAR_UNIFORMS = [
-  'u_time', 'u_bass', 'u_mid', 'u_treble', 'u_level',
+  'u_time', 'u_speed', 'u_scale', 'u_intensity',
+  'u_bass', 'u_mid', 'u_treble', 'u_level',
   'u_pinch', 'u_mouth', 'u_smile', 'u_brow', 'u_tilt',
 ];
+
+export const BLEND_MODES = ['normal', 'add', 'screen', 'multiply'];
 
 export function createRenderer(canvas) {
   const gl = canvas.getContext('webgl2', {
@@ -57,12 +62,9 @@ export function createRenderer(canvas) {
   let camW = 1;
   let camH = 1;
 
-  const vertShader = compile(gl.VERTEX_SHADER, VERT_SRC).shader;
+  const vertShader = compileStage(gl.VERTEX_SHADER, VERT_SRC).shader;
 
-  let program = null;
-  let locs = {};
-
-  function compile(type, src) {
+  function compileStage(type, src) {
     const shader = gl.createShader(type);
     gl.shaderSource(shader, src);
     gl.compileShader(shader);
@@ -74,9 +76,12 @@ export function createRenderer(canvas) {
     return { shader, error: null };
   }
 
-  /** Swap the fragment shader at runtime. Returns { ok, error }. */
-  function setShader(fragSrc) {
-    const frag = compile(gl.FRAGMENT_SHADER, fragSrc);
+  /**
+   * Compile a fragment source into a program handle.
+   * Returns { ok: true, program } or { ok: false, error }.
+   */
+  function compile(fragSrc) {
+    const frag = compileStage(gl.FRAGMENT_SHADER, fragSrc);
     if (frag.error) return { ok: false, error: frag.error };
 
     const prog = gl.createProgram();
@@ -90,16 +95,18 @@ export function createRenderer(canvas) {
       return { ok: false, error: log };
     }
 
-    if (program) gl.deleteProgram(program);
-    program = prog;
-    locs = {};
+    const locs = {};
     for (const name of [...SCALAR_UNIFORMS, 'u_res', 'u_camRes', 'u_hand', 'u_cam', 'u_prev']) {
-      locs[name] = gl.getUniformLocation(program, name); // null (= no-op) if unused
+      locs[name] = gl.getUniformLocation(prog, name); // null (= no-op) if unused
     }
-    gl.useProgram(program);
+    gl.useProgram(prog);
     gl.uniform1i(locs.u_cam, 0);
     gl.uniform1i(locs.u_prev, 1);
-    return { ok: true, error: null };
+    return { ok: true, program: { prog, locs } };
+  }
+
+  function release(program) {
+    if (program?.prog) gl.deleteProgram(program.prog);
   }
 
   /** Resize the drawing buffer (also reallocates the feedback texture). */
@@ -110,14 +117,25 @@ export function createRenderer(canvas) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
   }
 
+  function setBlend(mode) {
+    // All shaders output alpha = 1, so "normal" is a plain replace.
+    if (mode === 'normal') {
+      gl.disable(gl.BLEND);
+      return;
+    }
+    gl.enable(gl.BLEND);
+    if (mode === 'add') gl.blendFunc(gl.ONE, gl.ONE);
+    else if (mode === 'screen') gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_COLOR);
+    else if (mode === 'multiply') gl.blendFunc(gl.DST_COLOR, gl.ZERO);
+    else gl.disable(gl.BLEND);
+  }
+
   /**
-   * Draw one frame. `uniforms` is the flat contract bag (numbers, u_hand is
-   * [x, y]); `video` is the camera element or null when the camera is off.
+   * Composite one frame. `passes` is bottom-to-top: [{ program, uniforms,
+   * blend }]. `video` is the camera element or null when the camera is off.
    */
-  function draw(uniforms, video) {
-    if (!program) return;
+  function draw(passes, video) {
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.useProgram(program);
     gl.bindVertexArray(vao);
 
     gl.activeTexture(gl.TEXTURE0);
@@ -130,27 +148,41 @@ export function createRenderer(canvas) {
       camW = video.videoWidth;
       camH = video.videoHeight;
     }
-
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, prevTex);
 
-    gl.uniform2f(locs.u_res, canvas.width, canvas.height);
-    gl.uniform2f(locs.u_camRes, camW, camH);
-    const hand = uniforms.u_hand || [0.5, 0.5];
-    gl.uniform2f(locs.u_hand, hand[0], hand[1]);
-    for (const name of SCALAR_UNIFORMS) {
-      gl.uniform1f(locs[name], uniforms[name] ?? 0);
+    gl.disable(gl.BLEND);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    for (let i = 0; i < passes.length; i++) {
+      const { program, uniforms, blend } = passes[i];
+      if (!program) continue;
+      const { prog, locs } = program;
+      gl.useProgram(prog);
+      // The bottom layer always replaces the cleared black backdrop —
+      // "multiply" against black would blank the whole frame.
+      setBlend(i === 0 ? 'normal' : blend);
+
+      gl.uniform2f(locs.u_res, canvas.width, canvas.height);
+      gl.uniform2f(locs.u_camRes, camW, camH);
+      const hand = uniforms.u_hand || [0.5, 0.5];
+      gl.uniform2f(locs.u_hand, hand[0], hand[1]);
+      for (const name of SCALAR_UNIFORMS) {
+        gl.uniform1f(locs[name], uniforms[name] ?? 0);
+      }
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
+    gl.disable(gl.BLEND);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-    // Snapshot the backbuffer for next frame's u_prev. Must happen in the
+    // Snapshot the composite for next frame's u_prev. Must happen in the
     // same task as the draw (before compositing clears the backbuffer,
     // since preserveDrawingBuffer is off).
+    gl.activeTexture(gl.TEXTURE1);
     gl.copyTexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 0, 0, canvas.width, canvas.height);
   }
 
   resize(canvas.width, canvas.height);
 
-  return { setShader, resize, draw };
+  return { compile, release, resize, draw };
 }

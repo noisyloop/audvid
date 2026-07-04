@@ -13,7 +13,7 @@ void main() {
   vec2 uv = v_uv;
   float t = u_time * 0.4;
 
-  float zoom = mix(1.15, 0.65, u_pinch);
+  float zoom = mix(1.15, 0.65, u_pinch) / max(u_scale, 0.1);
   uv = (uv - 0.5) * zoom + 0.5;
 
   uv = swirl(uv, u_hand, (u_bass * 2.2 + 0.3) * sin(t * 0.7));
@@ -40,5 +40,5 @@ void main() {
   vec3 trail = texture(u_prev, v_uv).rgb;
   col = max(col, trail * (0.35 + u_smile * 0.45));
 
-  outColor = vec4(col, 1.0);
+  outColor = vec4(col * u_intensity, 1.0);
 }

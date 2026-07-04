@@ -1,0 +1,4 @@
+// name: PLASMA DRIFT
+// category: flow
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float sn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*sn(p);p*=2.02;a*=0.5;}return v;}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*2.6*u_scale+vec2(t*0.25,sin(t*0.3)*0.2);float r1=1.0-abs(2.0*fbm(p+vec2(0.0,t*0.15))-1.0);float r2=1.0-abs(2.0*fbm(p*2.3-vec2(t*0.2,0.0))-1.0);float fil=pow(r1,4.0)+pow(r2,5.0)*0.5;vec3 col=vec3(0.05,0.0,0.12);col+=vec3(0.25,0.1,0.8)*pow(r1,2.0);col+=(0.5+0.5*cos(6.28318*(fil*0.35+t*0.08+vec3(0.55,0.83,1.1))))*fil*0.9;col+=vec3(0.9,0.85,1.0)*pow(fil,3.5)*0.7;outColor=vec4(col*u_intensity,1.0);}

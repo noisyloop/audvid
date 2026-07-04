@@ -1,0 +1,4 @@
+// name: CRT MELTDOWN
+// category: glitch
+// ported from prism-video-synth
+float hash(float n){return fract(sin(n)*43758.5453);}void main(){vec2 uv=gl_FragCoord.xy/u_res.xy;float t=u_time*u_speed;vec2 p=uv*2.0-1.0;p*=1.0+0.22*dot(p,p);vec2 q=p*0.5+0.5;float roll=step(0.6,hash(floor(t*1.4)))*fract(t*1.4);q.y=fract(q.y+roll);float inside=step(abs(p.x),1.0)*step(abs(p.y),1.0);float v=sin(q.x*9.0*u_scale+t*1.5)+sin(q.y*7.0*u_scale-t)+sin((q.x+q.y)*11.0*u_scale+t*0.7);vec3 col=0.5+0.5*cos(v*1.8+t*0.4+vec3(0.0,2.09,4.18));float m=mod(floor(gl_FragCoord.x),3.0);vec3 mask=vec3(step(m,0.5),step(0.5,m)*step(m,1.5),step(1.5,m));col*=mask*2.4+0.15;col*=0.85+0.15*sin(q.y*u_res.y*2.0);col*=0.92+0.08*sin(t*55.0);col*=inside*(1.0-0.5*pow(length(p),3.0));col+=vec3(0.07,0.09,0.12)*(1.0-inside);outColor=vec4(col*u_intensity,1.0);}

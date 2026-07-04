@@ -1,0 +1,4 @@
+// name: PULSAR BEACON
+// category: space
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed;vec2 p=uv*1.5*u_scale;float r=length(p);float a=atan(p.y,p.x);float ab=t*1.6;float beam=pow(max(cos(a-ab),0.0),50.0)+pow(max(cos(a-ab+3.14159),0.0),50.0);beam*=exp(-r*0.7)*(1.2+0.5*sin(t*9.0));float ring=exp(-abs(r-fract(t*0.55)*1.7)*11.0)*(1.0-fract(t*0.55));float ring2=exp(-abs(r-fract(t*0.55+0.5)*1.7)*11.0)*(1.0-fract(t*0.55+0.5));vec3 col=vec3(0.01,0.01,0.04);col+=vec3(1.0)*step(0.991,hash(floor(uv*90.0)))*0.5;col+=vec3(0.55,0.7,1.0)*beam;col+=(0.5+0.5*cos(6.28318*(r*0.5-t*0.2+vec3(0.5,0.8,1.1))))*(ring+ring2)*0.9;col+=vec3(0.8,0.9,1.0)*exp(-r*10.0)*(1.4+0.8*sin(t*9.0));outColor=vec4(col*u_intensity,1.0);}

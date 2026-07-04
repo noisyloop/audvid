@@ -1,0 +1,4 @@
+// name: INK BLOOM
+// category: flow
+// ported from prism-video-synth
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float sn(vec2 p){vec2 i=floor(p);vec2 f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x),f.y);}float fbm(vec2 p){float v=0.0,a=0.5;for(int i=0;i<5;i++){v+=a*sn(p);p*=2.13;a*=0.5;}return v;}void main(){vec2 uv=(gl_FragCoord.xy-u_res.xy*0.5)/u_res.y;float t=u_time*u_speed*0.4;vec2 p=uv*2.2*u_scale;vec2 q=vec2(fbm(p+vec2(t*0.5,0.0)),fbm(p+vec2(3.1,t*0.4)));vec2 r=vec2(fbm(p+q*2.2+vec2(8.4,1.2)+t*0.3),fbm(p+q*2.2+vec2(2.7,6.9)-t*0.25));float ink=fbm(p*1.6+r*2.8);float wisp=pow(ink,2.4);vec3 col=mix(vec3(0.01,0.01,0.04),vec3(0.1,0.18,0.38),smoothstep(0.2,0.65,ink));col=mix(col,vec3(0.55,0.75,0.95),wisp*1.3);col=mix(col,vec3(0.95,0.98,1.0),pow(ink,5.0)*1.5);col+=vec3(0.2,0.1,0.4)*q.x*0.3;outColor=vec4(col*u_intensity,1.0);}
