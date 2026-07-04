@@ -19,4 +19,4 @@ void main(){
   col=mix(col,0.5+0.5*cos(uv.y*10.0+t+vec3(0,2,4)),1.0-glitchAmt);
   float scanline=0.9+0.1*sin(uv.y*u_res.y*2.0);
   col*=scanline*u_intensity;
-  outColor=vec4(col,1.0);}
+  outColor=vec4(audioPop(col),1.0);}

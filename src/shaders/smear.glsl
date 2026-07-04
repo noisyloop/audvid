@@ -10,10 +10,11 @@ void main() {
   float blocks = mix(6.0, 24.0, hash21(vec2(floor(t * 0.5), 3.7))) * max(u_scale, 0.1);
   vec2 cell = floor(uv * vec2(blocks, blocks * 1.8));
   float jitter = hash21(cell + floor(t * 8.0));
-  float gAmt = smoothstep(0.75, 1.0, jitter) * (u_bass * 0.15 + 0.005);
+  // onsets rip the blocks apart the frame the kick lands
+  float gAmt = smoothstep(0.75, 1.0, jitter) * (u_bass * 0.15 + u_bassHit * 0.25 + 0.005);
   uv.x += (jitter - 0.5) * gAmt * 2.0;
 
-  float split = 0.002 + u_treble * 0.03;
+  float split = 0.002 + u_treble * 0.03 + u_trebleHit * 0.03;
   vec3 col;
   col.r = cam(uv + vec2(split, 0.0)).r;
   col.g = cam(uv).g;

@@ -45,6 +45,16 @@
     </div>
 
     <div class="row">
+      <span class="synclab">⚡ Sync</span>
+      <div class="seg" role="group" aria-label="Sync preset">
+        <button data-sync="snappy">Snappy</button>
+        <button data-sync="balanced" class="on">Balanced</button>
+        <button data-sync="smooth">Smooth</button>
+      </div>
+      <button id="agcToggle" title="Auto-gain: quiet rooms still drive the visuals">AGC</button>
+    </div>
+
+    <div class="row">
       <button id="camToggle" class="toggle">📷 Camera</button>
       <div class="seg" role="group" aria-label="Audio source">
         <button data-audio="none" class="on">No audio</button>

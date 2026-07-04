@@ -23,4 +23,4 @@ void main(){
   vec3 col=(0.5+0.5*cos(hue*6.28318*2.0+vec3(0.0,2.09,4.18)))*edge;
   col+=vec3(1.0,0.5,0.9)*(1.0-edge)*0.15;
   col+=vec3(0.0,1.0,0.6)*smoothstep(0.03,0.0,sqrt(d2)-sqrt(d1))*2.0;
-  outColor=vec4(col*u_intensity,1.0);}
+  outColor=vec4(audioPop(col*u_intensity),1.0);}
